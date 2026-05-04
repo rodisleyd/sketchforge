@@ -1,0 +1,16 @@
+{
+  "name": "SketchForge",
+  "short_name": "SketchForge",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FDFCFB",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/iconeapp.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

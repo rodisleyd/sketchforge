@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // projects/{projectId}
+    match /projects/{projectId} {
+      function isValidProject(data) {
+        return data.name is string && data.name.size() > 0 && data.name.size() <= 100
+            && data.userId == request.auth.uid
+            && data.createdAt is number;
+      }
+
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      allow create: if isSignedIn() 
+          && isValidId(projectId)
+          && isValidProject(incoming());
+
+      allow update: if isSignedIn()
+          && resource.data.userId == request.auth.uid
+          && isValidProject(incoming())
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt
+          && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'updatedAt']);
+
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      // Sub-collections
+      match /references/{refId} {
+        function isValidRef(data) {
+          return data.projectId == projectId
+              && data.url is string && data.url.size() < 2000000 // 2MB roughly
+              && data.label is string
+              && data.type in ['character', 'environment', 'object', 'style']
+              && data.createdAt is number;
+        }
+
+        allow list: if isSignedIn() && get(/databases/$(database)/documents/projects/$(projectId)).data.userId == request.auth.uid;
+        allow get: if isSignedIn() && get(/databases/$(database)/documents/projects/$(projectId)).data.userId == request.auth.uid;
+        allow create: if isSignedIn() && isValidId(refId) && isValidRef(incoming()) && get(/databases/$(database)/documents/projects/$(projectId)).data.userId == request.auth.uid;
+        allow delete: if isSignedIn() && get(/databases/$(database)/documents/projects/$(projectId)).data.userId == request.auth.uid;
+      }
+
+      match /generations/{genId} {
+        function isValidGen(data) {
+          return data.projectId == projectId
+              && data.prompt is string && data.prompt.size() <= 1000
+              && data.imageUrl is string
+              && data.createdAt is number;
+        }
+
+        allow list: if isSignedIn() && get(/databases/$(database)/documents/projects/$(projectId)).data.userId == request.auth.uid;
+        allow get: if isSignedIn() && get(/databases/$(database)/documents/projects/$(projectId)).data.userId == request.auth.uid;
+        allow create: if isSignedIn() && isValidId(genId) && isValidGen(incoming()) && get(/databases/$(database)/documents/projects/$(projectId)).data.userId == request.auth.uid;
+        allow delete: if isSignedIn() && get(/databases/$(database)/documents/projects/$(projectId)).data.userId == request.auth.uid;
+      }
+    }
+    
+    // User Reference Library (Top Level)
+    match /user_library/{referenceId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

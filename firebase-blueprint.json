@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "Um projeto artístico contendo referências e gerações.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["name", "userId", "createdAt"]
+    },
+    "Reference": {
+      "title": "Reference Image",
+      "description": "Uma imagem de referência enviada pelo usuário.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "url": { "type": "string" },
+        "label": { "type": "string" },
+        "type": { "type": "string", "enum": ["character", "environment", "object", "style"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "url", "type", "createdAt"]
+    },
+    "Generation": {
+      "title": "Generated Sketch",
+      "description": "Um esboço gerado pela IA.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "prompt": { "type": "string" },
+        "fullPrompt": { "type": "string" },
+        "style": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "settings": {
+          "type": "object",
+          "properties": {
+            "contrast": { "type": "number" },
+            "texture": { "type": "number" },
+            "constructionLines": { "type": "number" }
+          }
+        }
+      },
+      "required": ["projectId", "prompt", "imageUrl", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Coleção de projetos do usuário."
+    },
+    "/projects/{projectId}/references/{referenceId}": {
+      "schema": "Reference",
+      "description": "Imagens de referência para um projeto específico."
+    },
+    "/projects/{projectId}/generations/{generationId}": {
+      "schema": "Generation",
+      "description": "Esboços gerados para um projeto específico."
+    }
+  }
+}
