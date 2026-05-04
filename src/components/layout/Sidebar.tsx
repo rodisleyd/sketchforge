@@ -83,9 +83,8 @@ export function Sidebar({ activeProject, onProjectSelect, onLibrarySelect, userI
   return (
     <aside className="w-72 border-r border-zinc-100 flex flex-col h-full bg-white z-20">
       <div className="p-6">
-        <div className="flex items-center gap-3 mb-8">
-           <img src="/iconeapp.png" alt="SketchForge" className="w-8 h-8 rounded-lg object-contain" />
-           <span className="font-semibold text-xl tracking-tight text-zinc-900">SketchForge</span>
+        <div className="mb-8 px-1">
+           <img src="/LOGOTIPO.png" alt="SketchForge" className="h-10 w-auto object-contain" />
         </div>
 
         <Button 
